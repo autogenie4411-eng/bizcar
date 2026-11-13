@@ -12944,6 +12944,7 @@ html[data-site-variant="corporate"]:not(.corporate-estimate-started)
     .corporate-intro.c26 .c26-service__rows p {
         font-size: 13px;
     }
+
     .corporate-intro.c26 .c26-logo {
         box-sizing: border-box;
         flex: 0 0 142px;
@@ -13027,6 +13028,9 @@ html[data-site-variant="corporate"]:not(.corporate-estimate-started)
 }
 .corporate-intro.c26 .c26-service__rows p {
     line-height: 1.55;
+}
+.corporate-intro.c26 .c26-service__rows p.line-c26 {
+    margin-top: 0 !important;
 }
 @media (max-width: 600px) {
     .corporate-intro.c26 #corporateIntroTitle {
