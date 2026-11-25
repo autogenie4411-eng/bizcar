@@ -1245,6 +1245,7 @@
   document.addEventListener('click', event => {
     const marketButton = event.target.closest?.('.segment-control[data-group="market"] button[data-value]');
     const searchVehicle = event.target.closest?.('[data-global-car]');
+    if (marketButton && document.documentElement.classList.contains('corporate-inline-estimate')) return;
     if (!marketButton && !searchVehicle) return;
     hiddenAfterBrandSelection = true;
     section.hidden = true;

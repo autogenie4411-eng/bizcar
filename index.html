@@ -1,6 +1,12 @@
 <!DOCTYPE html>
 <html lang="ko" data-site-variant="main">
 <head>
+  <script>
+    // Open the corporate preview when using the local Live Server.
+    if (["127.0.0.1", "localhost", "[::1]"].includes(location.hostname) && location.port === "5500") {
+      location.replace("corporate-preview.html" + location.search + location.hash);
+    }
+  </script>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-JW5PS7PGTS"></script>
   <script>

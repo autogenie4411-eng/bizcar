@@ -17024,6 +17024,7 @@ const vehicleCatalog = [
     state.market = brand.market;
     state.brandName = brand.name;
     state.carName = vehicle.carName;
+    state.vehicleSelection = isCorporateInlineEstimate;
     state.paintId = ""; // 외장 색상은 사용자가 직접 선택합니다.
     resetSelectionsAfterVehicleChange();
     rememberWizardStep();
@@ -17707,10 +17708,12 @@ const vehicleCatalog = [
     "전북특별자치도", "전라남도", "경상북도", "경상남도", "제주특별자치도"
   ];
 
+  const isCorporateInlineEstimate = document.documentElement.classList.contains("corporate-inline-estimate");
   const state = {
     step: 1,
     maxReachedStep: 1,
-    market: "",
+    market: isCorporateInlineEstimate ? "domestic" : "",
+    vehicleSelection: false,
     brandName: "",
     carName: "",
     paintId: "",
@@ -18074,7 +18077,9 @@ const vehicleCatalog = [
   function updateReviewPlacement() {
     if (!reviewSection || !reviewParking) return;
 
-    const shouldShowReview = state.step === 1 && !state.market;
+    const shouldShowReview = isCorporateInlineEstimate
+      ? state.step === 1 && !state.vehicleSelection && !state.submitted
+      : state.step === 1 && !state.market;
     const slot = content.querySelector("[data-review-slot]");
     reviewSection.hidden = !shouldShowReview;
 
@@ -18463,7 +18468,7 @@ const vehicleCatalog = [
         </fieldset>
 
         <fieldset class="option-block ${!state.brandName ? "is-disabled-block sequential-hidden" : ""}" data-option-section="car">
-          <legend><b>3</b> 차량 선택</legend>
+          <legend><b>${isCorporateInlineEstimate ? "1" : "3"}</b> 차량 선택</legend>
           ${brand ? `
             <div class="vehicle-card-list" id="carCardList">
               ${brand.cars.map(car => `
@@ -18486,7 +18491,7 @@ const vehicleCatalog = [
 
           <div class="paint-block ${!state.carName ? "is-disabled-block" : "has-monthly-discount"} ${hasPaintTrimRestrictions() ? "has-trim-guide" : ""} ${getPaintSurcharge(paint) ? "has-paint-surcharge" : ""}" data-option-section="paint">
             <div class="paint-label">
-              <span class="paint-label-title"><b>4</b> 외장 색상${state.carName ? `<em>${paints.length}개</em>` : ""}</span>
+              <span class="paint-label-title"><b>${isCorporateInlineEstimate ? "2" : "4"}</b> 외장 색상${state.carName ? `<em>${paints.length}개</em>` : ""}</span>
               <small class="paint-surcharge--header" data-paint-surcharge-amount ${getPaintSurcharge(paint) ? "" : "hidden"}>${getPaintSurcharge(paint) ? `추가금 +${getPaintSurcharge(paint).toLocaleString("ko-KR")}원` : ""}</small>
               ${state.carName ? `<small class="paint-swipe-guide">좌우로 넘겨보세요</small>` : ""}
             </div>
@@ -18800,6 +18805,8 @@ const vehicleCatalog = [
   }
 
   function render(options = {}) {
+    document.documentElement.classList.toggle("corporate-selection-page",
+      isCorporateInlineEstimate && (state.vehicleSelection || state.step > 1 || state.submitted));
     reconcilePaintTrim();
     const preserveScroll = options.preserveScroll === true;
     const preservedScrollY = preserveScroll ? window.scrollY : 0;
@@ -18862,7 +18869,7 @@ const vehicleCatalog = [
 
     const shouldShowConsultButton = state.step === 1 || state.step === 2;
 
-    backButton.hidden = state.step === 1;
+    backButton.hidden = state.step === 1 && !(isCorporateInlineEstimate && state.vehicleSelection);
     consultButton.hidden = !shouldShowConsultButton;
     consultButton.textContent = "바로 견적신청";
     actions.classList.toggle("has-consult-button", shouldShowConsultButton);
@@ -19177,6 +19184,7 @@ const vehicleCatalog = [
     content.querySelectorAll(".wizard-brand-grid button[data-brand]").forEach(button => {
       button.addEventListener("click", () => {
         button.blur();
+        if (isCorporateInlineEstimate) rememberWizardStep();
 
         const nextBrandName = button.dataset.brand;
         const brandChanged = state.brandName !== nextBrandName;
@@ -19187,6 +19195,14 @@ const vehicleCatalog = [
           state.carName = "";
           state.paintId = "";
           resetSelectionsAfterVehicleChange();
+        }
+
+        if (isCorporateInlineEstimate) {
+          state.vehicleSelection = true;
+          recordWizardStep();
+          render();
+          scrollToEstimate();
+          return;
         }
 
         // importcar와 동일하게 차량 아이템을 먼저 렌더링한 뒤,
@@ -19451,6 +19467,7 @@ const vehicleCatalog = [
     state.carName = nextCarName;
     state.paintId = "";
     state.step = 1;
+    state.vehicleSelection = isCorporateInlineEstimate;
 
     if (vehicleChanged) resetSelectionsAfterVehicleChange();
 
@@ -19483,7 +19500,8 @@ const vehicleCatalog = [
 
     state.step = 1;
     state.maxReachedStep = 1;
-    state.market = "";
+    state.market = isCorporateInlineEstimate ? "domestic" : "";
+    state.vehicleSelection = false;
     state.brandName = "";
     state.carName = "";
     state.paintId = "";
@@ -20009,6 +20027,14 @@ const vehicleCatalog = [
   });
 
   backButton.addEventListener("click", () => {
+    if (isCorporateInlineEstimate && state.step === 1 && state.vehicleSelection) {
+      rememberWizardStep();
+      state.vehicleSelection = false;
+      recordWizardStep();
+      render();
+      scrollToEstimate();
+      return;
+    }
     if (state.step > 1) {
       navigateWizardStep(state.step - 1);
     }
@@ -20027,6 +20053,18 @@ const vehicleCatalog = [
   });
 
   nextButton.addEventListener("click", async () => {
+    if (isCorporateInlineEstimate && state.step === 1 && !state.vehicleSelection) {
+      if (!state.brandName) {
+        showValidation("브랜드를 선택해 주세요.");
+        return;
+      }
+      rememberWizardStep();
+      state.vehicleSelection = true;
+      recordWizardStep();
+      render();
+      scrollToEstimate();
+      return;
+    }
     if (!validateCurrentStep()) return;
 
     if (state.step < 4) {
@@ -20122,6 +20160,7 @@ const vehicleCatalog = [
     state.market = directVehicle.market;
     state.brandName = directVehicle.brandName;
     state.carName = directVehicle.carName;
+    state.vehicleSelection = isCorporateInlineEstimate;
     state.paintId = "";
     // 인트로를 건너뛰되, 일반 주소 방문과 로고 초기화 시에는 인트로를 유지합니다.
     document.documentElement.classList.add("corporate-estimate-started", "vehicle-direct-selected");
