@@ -1,12 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko" data-site-variant="main">
 <head>
-  <script>
-    // Open the corporate preview when using the local Live Server.
-    if (["127.0.0.1", "localhost", "[::1]"].includes(location.hostname) && location.port === "5500") {
-      location.replace("corporate-preview.html" + location.search + location.hash);
-    }
-  </script>
   <!-- Google tag (gtag.js) -->
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-JW5PS7PGTS"></script>
   <script>
@@ -23,21 +17,25 @@
   <title>오토지니 통합차 | 국산·수입차 장기렌트·리스 견적 비교</title>
 
   <script>
-    // [공통 원본 1개] 메인/법인 사이트를 접속 도메인에 따라 자동 구분합니다.
+    // 통합차는 기존 화면을 유지하고 법인 사이트는 corporate-preview를 기본으로 엽니다.
     // 메인(agcar.agautoplan.com): 법인 소개 OFF / 견적 바로 시작
-    // 법인용(그 외 운영 도메인): 법인 소개 ON / 이후 견적 시작
+    // 법인용(그 외 운영 도메인): corporate-preview.html로 이동
     // 로컬 Live Server 및 GitHub 미리보기 기본 화면: true = 법인 소개, false = 견적 화면
     // ?test=corporate 또는 /test/ 경로로도 법인 화면을 테스트할 수 있습니다.
     (function () {
       const SHOW_CORPORATE_INTRO = true;
       const host = String(location.hostname || "").toLowerCase();
       const isPreview = !host || host === "localhost" || host === "127.0.0.1" ||
-        host === "0.0.0.0" || host.endsWith(".github.io");
+        host === "0.0.0.0" || host === "[::1]" || host.endsWith(".github.io");
       const testMode = new URLSearchParams(location.search).get("test");
       const isTestPath = /^\/test(?:\/|$)/i.test(location.pathname);
       const isCorporate = isTestPath || (isPreview
         ? (testMode ? testMode === "corporate" : SHOW_CORPORATE_INTRO)
         : host !== "agcar.agautoplan.com");
+      if (isCorporate) {
+        location.replace("corporate-preview.html" + location.search + location.hash);
+        return;
+      }
       const variant = isCorporate ? "corporate" : "main";
       document.documentElement.dataset.siteVariant = variant;
       document.documentElement.classList.toggle("corporate-estimate-started", !isCorporate);
