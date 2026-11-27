@@ -19105,10 +19105,20 @@ const vehicleCatalog = [
   }
 
 
+  // 국산차 이미지는 파일명이 같은 교체본도 최신 버전으로 요청합니다.
+  function domesticVehicleImageUrl(imagePath, brandName = state.brandName) {
+    const imageUrl = assetUrl(imagePath || fallbackImage);
+    const brand = vehicleCatalog.find(item => item.name === brandName);
+    const version = window.AUTOGENIE_VEHICLE_PREVIEW?.imageVersion;
+    if (brand?.market !== "domestic" || !version) return imageUrl;
+    const url = new URL(imageUrl, projectRootUrl);
+    url.searchParams.set("preview", version);
+    return url.href;
+  }
+
   function currentCarImage() {
     const selectedPaint = currentPaint() || currentPaints()[0];
-    const imagePath = paintImagePath(selectedPaint) || fallbackImage;
-    return assetUrl(imagePath);
+    return domesticVehicleImageUrl(paintImagePath(selectedPaint));
   }
 
   function getCarPreviewImage(brandName, carName) {
@@ -19117,11 +19127,7 @@ const vehicleCatalog = [
     const preview = window.AUTOGENIE_VEHICLE_PREVIEW;
     const paintId = brand?.market === "domestic" && preview?.enabled === true ? preview.byCar?.[`${brandName}|${carName}`] : "";
     const paint = car?.paints?.find(item => item.id === paintId) || car?.paints?.[0];
-    const imageUrl = assetUrl(paint?.image || fallbackImage);
-    if (!paintId || !preview.imageVersion) return imageUrl;
-    const url = new URL(imageUrl, projectRootUrl);
-    url.searchParams.set("preview", preview.imageVersion);
-    return url.href;
+    return domesticVehicleImageUrl(paint?.image, brandName);
   }
 
   function ensureSelection() {
@@ -20042,10 +20048,10 @@ const vehicleCatalog = [
         nextImage.decoding = "async";
         nextImage.onload = () => {
           if (state.paintId !== nextPaintId || !vehicleImage.isConnected) return;
-          vehicleImage.src = assetUrl(paintImagePath(nextPaint));
+          vehicleImage.src = domesticVehicleImageUrl(paintImagePath(nextPaint));
           vehicleImage.alt = `${state.brandName} ${state.carName} ${nextPaint.name}`;
         };
-        nextImage.src = assetUrl(paintImagePath(nextPaint));
+        nextImage.src = domesticVehicleImageUrl(paintImagePath(nextPaint));
       });
     });
 

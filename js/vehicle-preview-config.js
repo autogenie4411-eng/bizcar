@@ -1,7 +1,7 @@
 // 할부용 차량 목록 대표 이미지 설정 (국산차만 적용)
 window.AUTOGENIE_VEHICLE_PREVIEW = {
   "enabled": true,
-  "imageVersion": "20261127-domestic-sync-01",
+  "imageVersion": "20261127-corporate-sync-02",
   "byCar": {
     "현대|그랜저": "paint-390",
     "현대|그랜저 하이브리드": "paint-521",
