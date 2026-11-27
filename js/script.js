@@ -19077,8 +19077,10 @@ const vehicleCatalog = [
     if (isDomesticVehicleSelection() && !getPaintConfigurations(paint).length) {
       state.trim = "";
       state.subTrim = "";
-      state.maxReachedStep = Math.min(state.maxReachedStep, 1);
-      if (state.step > 1) state.step = 1;
+      if (state.step !== 4) {
+        state.maxReachedStep = Math.min(state.maxReachedStep, 1);
+        if (state.step > 1) state.step = 1;
+      }
       return;
     }
     const group = availableModelGroups().find(item => item.name === state.trim);
@@ -19087,8 +19089,10 @@ const vehicleCatalog = [
     if (incompatibleModel) state.trim = "";
     if (incompatibleModel || incompatibleTrim) {
       state.subTrim = "";
-      state.maxReachedStep = Math.min(state.maxReachedStep, 2);
-      if (state.step > 2) state.step = 2;
+      if (state.step !== 4) {
+        state.maxReachedStep = Math.min(state.maxReachedStep, 2);
+        if (state.step > 2) state.step = 2;
+      }
     }
   }
 
@@ -19617,7 +19621,8 @@ const vehicleCatalog = [
     }
 
     ensureSelection();
-    if (!state.submitted && state.step > 1 && (!state.carName || !currentPaint())) {
+    // 정보입력 단계는 미선택 항목을 "상담 후 결정"으로 접수할 수 있습니다.
+    if (!state.submitted && state.step > 1 && state.step < 4 && (!state.carName || !currentPaint())) {
       state.step = 1;
       state.maxReachedStep = 1;
       state.trim = "";
